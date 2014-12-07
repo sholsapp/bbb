@@ -1,0 +1,4 @@
+#!/bin/bash
+dtc -O dtb -o BB-ENC28J60-00A0.dtbo -b 0 -@ BB-ENC28J60-00A0.dts
+sudo cp BB-ENC28J60-00A0.dtbo /lib/firmware
+sudo chown root:root /lib/firmware/BB-ENC28J60-00A0.dtbo
