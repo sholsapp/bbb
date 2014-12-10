@@ -56,9 +56,9 @@ fragment@1 {
          interrupt-parent   = <&gpio4>;
          interrupts         = <21>;
          spi-max-frequency  = <25000000>;
-         gpios              = <&gpio0 15 0
-                               &gpio3 21 0
-                               &gpio0 14 0
+         gpios              = <&gpio0 15 1
+                               &gpio3 21 1
+                               &gpio0 14 1
                                &gpio3 19 0>;
        };
        spidev@1{
