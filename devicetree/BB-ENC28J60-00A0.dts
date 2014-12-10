@@ -13,10 +13,10 @@ version = "00A0";
 /* state the resources this cape uses */
 exclusive-use =
   /* the pin header uses */
-  "P9.24",
-  "P9.25",
-  "P9.26",
-  "P9.27",
+  "P9.24", /* gpio0[15] */
+  "P9.25", /* gpio3[21] */
+  "P9.26", /* gpio0[14] */
+  "P9.27", /* gpio3[19] */
   "P9.28",
   "P9.29",
   "P9.30",
@@ -55,12 +55,16 @@ fragment@1 {
          reg                = <0>;
          interrupt-parent   = <&gpio4>;
          interrupts         = <21>;
-         spi-max-frequency  = <20000000>;
+         spi-max-frequency  = <25000000>;
+         gpios              = <&gpio0 15 0
+                               &gpio3 21 0
+                               &gpio0 14 0
+                               &gpio3 19 0>;
        };
        spidev@1{
          compatible         = "spidev";
          reg                = <1>;
-         spi-max-frequency  = <24000000>;
+         spi-max-frequency  = <25000000>;
        };            
     };
   };
