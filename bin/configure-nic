@@ -1,0 +1,5 @@
+#!/bin/bash
+ifconfig eth1 down
+ethtool -s eth1 msglvl 0xffff
+ethtool -s eth1 speed 10 duplex full
+ifconfig eth1 up
