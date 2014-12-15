@@ -53,8 +53,14 @@ fragment@1 {
        spidev@0{
          compatible         = "microchip,enc28j60";
          reg                = <0>;
+
+	 /* See the documentation for the gpio interrupt-controller defined in
+         * the am33xx.dtsi for numbering and parameter interpretations
+         * (https://www.kernel.org/doc/Documentation/devicetree/bindings/gpio/gpio-omap.txt)
+         */
          interrupt-parent   = <&gpio4>;
-         interrupts         = <21>;
+         interrupts         = <21 10>;
+
          spi-max-frequency  = <25000000>;
          gpios              = <&gpio1 15 1
                                &gpio4 21 1
