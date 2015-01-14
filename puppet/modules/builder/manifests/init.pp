@@ -21,13 +21,13 @@ class builder {
     ensure => directory,
   }
 
-  vcsrepo {'/home/ubuntu/workspace/bbb':
+  vcsrepo {'/home/ubuntu/workspace/dotfiles':
     ensure => present,
     provider => git,
-    source => 'https://github.com/sholsapp/bbb.git',
+    source => 'https://github.com/sholsapp/dotfiles.git',
   }
 
-  File['/home/ubuntu/workspace'] -> Vcsrepo['/home/ubuntu/workspace/bbb']
+  File['/home/ubuntu/workspace'] -> Vcsrepo['/home/ubuntu/workspace/dotfiles']
 
 }
 
