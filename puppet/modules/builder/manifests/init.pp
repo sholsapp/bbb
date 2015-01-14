@@ -13,7 +13,7 @@ class builder {
     'flex',
   ]
 
-  package { $packages
+  package { $packages:
     ensure => installed,
   }
 

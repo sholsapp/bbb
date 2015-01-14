@@ -63,3 +63,8 @@ target/
 *.swo
 
 *.DS_store
+
+# puppet modules/plugins
+puppet/modules/vcsrepo/
+
+*.dtbo
