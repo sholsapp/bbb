@@ -1,5 +1,12 @@
 class apache {
-  package {'apache2':
+
+  $packages = [
+    'apache2',
+    'apache2-bin',
+    'apache2-data',
+    'apache2-utils',
+  ]
+  package {$packages:
     ensure => installed,
     before => File['/etc/apache2/apache2.conf'],
   }
