@@ -20,12 +20,12 @@ class builder {
   file { '/etc/init.d/capemgr-debian.sh':
     ensure => file,
     mode   => 755,
-    source => 'puppet:///builder/capemgr-control',
+    source => 'puppet:///modules/builder/capemgr-control',
   }
 
   file { '/etc/capemgr':
     ensure => file,
-    source => 'puppet:///builder/capemgr',
+    source => 'puppet:///modules/builder/capemgr',
   }
 
   file {'/home/ubuntu/workspace':
