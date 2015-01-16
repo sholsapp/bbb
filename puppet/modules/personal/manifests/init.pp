@@ -14,8 +14,18 @@ class builder {
     source => 'puppet:///modules/personal/gitconfig',
   }
 
-  file {'/home/ubuntu/workspace':
+  file { '/home/ubuntu/workspace':
     ensure => directory,
+  }
+
+  file { '/home/ubuntu/.ssh':
+    ensure => directory,
+  }
+
+  file {
+    "/etc/motd":
+      ensure => file,
+      source => "puppet:///modules/personal/motd";
   }
 
   vcsrepo {'/home/ubuntu/workspace/dotfiles':
