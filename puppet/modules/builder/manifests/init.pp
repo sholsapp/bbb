@@ -28,17 +28,5 @@ class builder {
     source => 'puppet:///modules/builder/capemgr',
   }
 
-  file {'/home/ubuntu/workspace':
-    ensure => directory,
-  }
-
-  vcsrepo {'/home/ubuntu/workspace/dotfiles':
-    ensure   => present,
-    provider => git,
-    source   => 'https://github.com/sholsapp/dotfiles.git',
-  }
-
-  File['/home/ubuntu/workspace'] -> Vcsrepo['/home/ubuntu/workspace/dotfiles']
-
 }
 
