@@ -24,7 +24,16 @@ class builder {
     source   => 'https://github.com/sholsapp/dotfiles.git',
   }
 
-  File['/home/ubuntu/workspace'] -> Vcsrepo['/home/ubuntu/workspace/dotfiles']
+  exec { 'installer':
+    command => 'installer',
+    path    => [
+      '/home/ubuntu/workspace/dotfiles'
+    ],
+  }
+
+  File['/home/ubuntu/workspace']
+  -> Vcsrepo['/home/ubuntu/workspace/dotfiles']
+  -> Exec['installer']
 
 }
 
