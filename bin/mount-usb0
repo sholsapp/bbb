@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo mount /dev/sda1 /media/usb0/
+sudo chown ubuntu:ubuntu /media/usb0

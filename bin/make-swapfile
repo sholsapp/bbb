@@ -1,0 +1,4 @@
+#!/bin/bash
+sudo dd if=/dev/zero of=/media/usb0/swapfile bs=1024 count=1024k
+sudo mkswap /media/usb0/swapfile
+sudo swapon /media/usb0/swapfile

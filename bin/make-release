@@ -1,0 +1,2 @@
+#!/bin/bash
+tar cfz ~/public_html/releases/pinecone-release-$(date '+%d-%m-%y-%H-%M-%S').tar.gz *
