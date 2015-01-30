@@ -1,0 +1,126 @@
+diff --git a/drivers/net/ethernet/microchip/enc28j60.c b/drivers/net/ethernet/microchip/enc28j60.c
+index a99456c..f03ced5 100644
+--- a/drivers/net/ethernet/microchip/enc28j60.c
++++ b/drivers/net/ethernet/microchip/enc28j60.c
+@@ -385,6 +385,7 @@ static void enc28j60_mem_read(struct enc28j60_net *priv,
+ static void
+ enc28j60_packet_write(struct enc28j60_net *priv, int len, const u8 *data)
+ {
++        int spi_write_ret;
+ 	mutex_lock(&priv->lock);
+ 	/* Set the write pointer to start of transmit buffer area */
+ 	nolock_regw_write(priv, EWRPTL, TXSTART_INIT);
+@@ -407,7 +408,8 @@ enc28j60_packet_write(struct enc28j60_net *priv, int len, const u8 *data)
+ 			": %s() after control byte ERWPT:0x%04x\n",
+ 			__func__, nolock_regw_read(priv, EWRPTL));
+ 	/* copy the packet into the transmit buffer */
+-	spi_write_buf(priv, len, data);
++	spi_write_ret = spi_write_buf(priv, len, data);
++        printk(KERN_DEBUG DRV_NAME ": %s() spi_write returns %d\n", __func__, spi_write_ret);
+ 	if (netif_msg_hw(priv))
+ 		printk(KERN_DEBUG DRV_NAME
+ 			 ": %s() after write packet ERWPT:0x%04x, len=%d\n",
+@@ -1044,20 +1046,42 @@ static void enc28j60_check_link_status(struct net_device *ndev)
+ 	struct enc28j60_net *priv = netdev_priv(ndev);
+ 	u16 reg;
+ 	int duplex;
++        int tries;
++        tries = 10;
+ 
+ 	reg = enc28j60_phy_read(priv, PHSTAT2);
+ 	if (netif_msg_hw(priv))
+ 		printk(KERN_DEBUG DRV_NAME ": %s() PHSTAT1: %04x, "
+ 			"PHSTAT2: %04x\n", __func__,
+ 			enc28j60_phy_read(priv, PHSTAT1), reg);
++
+ 	duplex = reg & PHSTAT2_DPXSTAT;
+ 
+-	if (reg & PHSTAT2_LSTAT) {
++        int link;
++        link = reg & PHSTAT2_LSTAT;
++        while (!link && tries > 0) {
++          reg = enc28j60_phy_read(priv, PHSTAT2);
++          duplex = reg & PHSTAT2_DPXSTAT;
++          link = reg & PHSTAT2_LSTAT;
++          printk(KERN_DEBUG DRV_NAME ":%s() (waiting for link: %d) reg: %04x, "
++                  "duplex: %04x, "
++                  "link status: %04x\n", __func__,
++                  tries, reg, duplex, link);
++          tries -= 1;
++          msleep(100);
++        }
++
++	if (link) {
++                printk(KERN_DEBUG DRV_NAME ":%s() have link! setting carrier on\n", __func__);
+ 		netif_carrier_on(ndev);
+-		if (netif_msg_ifup(priv))
++		if (netif_msg_ifup(priv)) {
+ 			dev_info(&ndev->dev, "link up - %s\n",
+ 				duplex ? "Full duplex" : "Half duplex");
++                } else {
++                  printk(KERN_DEBUG DRV_NAME ":%s() failed to set carrier on\n", __func__);
++                }
+ 	} else {
++                printk(KERN_DEBUG DRV_NAME ":%s() failed to get link\n", __func__);
+ 		if (netif_msg_ifdown(priv))
+ 			dev_info(&ndev->dev, "link down\n");
+ 		netif_carrier_off(ndev);
+@@ -1241,6 +1265,16 @@ static void enc28j60_hw_tx(struct enc28j60_net *priv)
+ 	if (netif_msg_pktdata(priv))
+ 		dump_packet(__func__,
+ 			    priv->tx_skb->len, priv->tx_skb->data);
++
++        /* Reset TX logic */
++        printk(KERN_DEBUG DRV_NAME ": %s() reseting TX logic... because the errata says it might help.\n", __func__);
++        mutex_lock(&priv->lock);
++        nolock_reg_bfset(priv, ECON1, ECON1_TXRST);
++        nolock_reg_bfclr(priv, ECON1, ECON1_TXRST);
++        nolock_txfifo_init(priv, TXSTART_INIT, TXEND_INIT);
++        mutex_unlock(&priv->lock);
++        printk(KERN_DEBUG DRV_NAME ": %s() reseting TX logic... done.\n", __func__);
++
+ 	enc28j60_packet_write(priv, priv->tx_skb->len, priv->tx_skb->data);
+ 
+ #ifdef CONFIG_ENC28J60_WRITEVERIFY
+@@ -1322,6 +1356,8 @@ static irqreturn_t enc28j60_irq(int irq, void *dev_id)
+ 	 */
+ 	schedule_work(&priv->irq_work);
+ 
++        printk(KERN_DEBUG DRV_NAME ": %s() scheduling irq work\n", __func__);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -1349,6 +1385,8 @@ static int enc28j60_net_open(struct net_device *dev)
+ {
+ 	struct enc28j60_net *priv = netdev_priv(dev);
+ 
++        printk(KERN_DEBUG DRV_NAME ": HELLO WORLD\n");
++
+ 	if (netif_msg_drv(priv))
+ 		printk(KERN_DEBUG DRV_NAME ": %s() enter\n", __func__);
+ 
+@@ -1584,19 +1622,22 @@ static int enc28j60_probe(struct spi_device *spi)
+ 	 */
+ 	ret = request_irq(spi->irq, enc28j60_irq, 0, DRV_NAME, priv);
+ 	if (ret < 0) {
++                dev_info(&spi->dev, DRV_NAME ": %s() IRQ request failed\n", __func__);
+ 		if (netif_msg_probe(priv))
+ 			dev_err(&spi->dev, DRV_NAME ": request irq %d failed "
+ 				"(ret = %d)\n", spi->irq, ret);
+ 		goto error_irq;
+ 	}
+ 
++        dev_info(&spi->dev, DRV_NAME ": %s() IRQ requested. ret=%d, spi->irq=%d \n", __func__, ret, spi->irq);
++
+ 	dev->if_port = IF_PORT_10BASET;
+ 	dev->irq = spi->irq;
+ 	dev->netdev_ops = &enc28j60_netdev_ops;
+ 	dev->watchdog_timeo = TX_TIMEOUT;
+ 	SET_ETHTOOL_OPS(dev, &enc28j60_ethtool_ops);
+ 
+-	enc28j60_lowpower(priv, true);
++	enc28j60_lowpower(priv, false);
+ 
+ 	ret = register_netdev(dev);
+ 	if (ret) {
